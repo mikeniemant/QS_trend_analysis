@@ -8,9 +8,12 @@ wellPanel(
                              accept = c(".txt"), 
                              placeholder = "Add new txt files")),
   
-  conditionalPanel(condition = "input.tabs == 'plot'",
-                   sliderTextInput("slider_years", "Years", value = c("2016", "2018", "2021"), min = 1, max = 3),
-                   sliderInput("slider_months", "Months", value = c(3, 5), min = 1, max = 12)),
+  # conditionalPanel(condition = "input.tabs == 'plot'",
+  #                  sliderTextInput(inputId = "slider_years", 
+  #                                  label = "Years", 
+  #                                  choices = c("2016", "2017", "2018", "2021"), 
+  #                                  selected = min = 1, max = 3),
+  #                  sliderInput("slider_months", "Months", value = c(3, 5), min = 1, max = 12)),
   
   # Works together with the observe button in app
   tags$script('
