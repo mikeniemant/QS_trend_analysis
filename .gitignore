@@ -1,0 +1,21 @@
+# Project objects
+#################
+*testing/
+MN_readme.md
+
+# R related objects
+###################
+*.rds
+.Rhistory
+
+# OS generated files
+####################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.blank
+*.icloud
