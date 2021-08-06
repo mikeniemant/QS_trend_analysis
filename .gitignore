@@ -2,6 +2,9 @@
 #################
 *testing/
 MN_readme.md
+db.csv
+db_path.txt
+qc.csv
 
 # R related objects
 ###################

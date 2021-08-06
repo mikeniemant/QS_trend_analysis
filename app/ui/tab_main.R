@@ -5,7 +5,5 @@ tabPanel("Introduction", value = "main",
          
          htmlOutput("db_path"),
          
-         htmlOutput("targets"),
-         
          htmlOutput("main_text_2")
 )

@@ -8,14 +8,7 @@ wellPanel(
                              accept = c(".txt"), 
                              placeholder = "Add new txt files")),
   
-  # conditionalPanel(condition = "input.tabs == 'plot'",
-  #                  sliderTextInput(inputId = "slider_years", 
-  #                                  label = "Years", 
-  #                                  choices = c("2016", "2017", "2018", "2021"), 
-  #                                  selected = min = 1, max = 3),
-  #                  sliderInput("slider_months", "Months", value = c(3, 5), min = 1, max = 12)),
-  
-  # Works together with the observe button in app
+  # Works together with the observe button in app to reset fileInput widget
   tags$script('
     Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {      
         var id = "#" + x + "_progress";
@@ -23,5 +16,15 @@ wellPanel(
         $(id).css("visibility", "hidden");
         $(idBar).css("width", "0%");
     });
-  ') # TODO: still have to add: "Add new text files"
+  '), # TODO: still have to add: "Add new text files"
+  
+  # conditionalPanel(condition = "input.tabs == 'plot'",
+  #                  sliderInput(inputId = "slider_years", label = "Years", value = c(2019, 2020), min = 2018, max = 2021),
+  #                  sliderInput("slider_months", "Months", value = c(2, 12), min = 1, max = 12))
+  conditionalPanel(condition = "input.tabs == 'plot'",
+                   radioButtons(inputId = "radio_period", 
+                                choices = c("Week", "Month", "Year"), 
+                                label = "Select period", 
+                                selected = "Month"))
+  
 )

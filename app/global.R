@@ -1,20 +1,8 @@
 # QS trend analysis - global 
-# Define global variables ----
-# YES, you have made it to global.R file, nice job!
-# You only have to edit the following two variables, Shiny does the rest!
-# Make sure to keep the same format: text between "" and don't touch the parentheses!
-
-# 1. Edit the database path ("C:/db.csv")
-PATH <- "/Users/mn/Library/Mobile Documents/com~apple~CloudDocs/workspace/skyline_shiny_apps/QS_trend_analysis/"
-# 2. Include your targets (if you have less then eleven targets, you can use the SkylineDx colours, happy dance)
-TARGETS <- c("TARGET1", "TARGET2", "TARGET..")
-TARGETS <- c("ACTB", "RPLP0", "MLANA", "ITGB3", "PLAT", "IL8", "GDF15", "LOXL4", "TGFBR1", "SERPINE2")
-
-# Thank you! You can save and close this file now. Make sure to restart Shiny!
-
 Sys.setenv(TZ="UTC")
-DB_PATH <<- paste0(PATH, "testing/db.csv")
-QS_FILE_PATH <- paste0(PATH, "testing/data/")
+
+DB_PATH <- "./../db.csv"
+QC_PATH <- "./../qc.csv"
 
 # Color scheme
 rgb_colours <- c("29 79 110", 
@@ -60,12 +48,12 @@ readTxt <- function(file_path) {
     
     if(substr(line, 1, 26) == "* Instrument Name =       ") {
       exp_instr <- substr(line, 27, nchar(line))
-      #print(exp_instr)
+      # print(paste0("Intstrument Name: ", exp_instr))
     }
     
     if(substr(line, 1, 29) == "* Instrument Serial Number = ") {
       exp_instr_id <- substr(line, 30, nchar(line))
-      #print(exp_instr_id)
+      # print(paste0("Instrument Serial Number: ", exp_instr_id))
     }
     
     if(line == "[Results]") {
@@ -98,14 +86,14 @@ readTxt <- function(file_path) {
   
   # Compile output as list object
   tib <- tibble(date = exp_date,
-                instr = as.double(exp_instr),
+                instrument = as.character(exp_instr),
                 id = as.double(exp_instr_id)) %>% 
     bind_cols(res %>% nest(data = everything()))
   
   return(tib)
 }
 
-processQSResults <- function(res, targets) {
+processQSResults <- function(res) {
   # Change Undetermined to NA
   res$CT[res$CT == "Undetermined"] <- NA
   # TODO: Can we improve this?
@@ -119,12 +107,23 @@ processQSResults <- function(res, targets) {
                                  sample_id == "NTC" ~ "Negative Control",
                                  T ~ sample_id))
   
-  # Filter relevant targets
-  res <- res %>% 
-    filter(target %in% targets)
-  
   # Filter positive controls
   res <- res %>% filter(sample_id == "Positive Control")
   
   return(res)
+}
+
+plotTrend <- function(x) {
+  p <- ggplot(x %>% mutate(instrument = factor(instrument)),
+              aes(x = date, y = ct, colour = target)) +
+    geom_point(aes(shape = instrument), alpha = 0.5) +
+    stat_smooth(method = "lm", formula = "y ~ x") + 
+    labs(x = "Date",
+         y = "Ct",
+         colour = "Target name",
+         shape = "Instrument") +
+    scale_color_manual(values = colors) +
+    facet_wrap(~target, ncol = 1, scales = "fixed") + # free_y
+    theme_bw() +
+    theme(legend.position="none")
 }

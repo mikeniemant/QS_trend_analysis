@@ -19,7 +19,7 @@ output$files_imported <- reactive({
     # For now, import and preprocess data
     file_paths <<- file_paths %>% as_tibble() %>% 
       mutate(map_df(datapath, readTxt), 
-             data = map(data, processQSResults, TARGETS))
+             data = map(data, processQSResults))
     
     # Check if db is available in order to draw table
     if(is.null(db)) {
@@ -45,22 +45,17 @@ output$files_imported <- reactive({
 
 outputOptions(output, "files_imported", suspendWhenHidden=FALSE)
 
-# Add files to database
+# Add files to database ----
 observeEvent(input$add_to_db, {
   # Add files to database
   x <- file_paths %>% 
     filter(in_database == "No") %>% 
     unnest(data) %>% 
-    select(date, exp_name, instr, id, target, ct)
+    select(date, exp_name, instrument, id, target, ct)
   
   if(is.null(db)) {
     db <<- x
   } else {
-    # Identify  
-    # TODO: quick and dirty, maybe we have to add more functionality here
-    # - What experiments are duplicates?
-    # - If duplicates, how should the app handle this?
-    
     # Prepare x by binding the current db to the added samples
     db <<- db %>% bind_rows(x)
   }
@@ -72,6 +67,7 @@ observeEvent(input$add_to_db, {
   # file_paths <<- NULL
   renderDataTable(NULL,
                   options = list(dom = 't'))
+  # TODO: reset new file tables
 })
 
 # Reset the input_file button

@@ -1,8 +1,8 @@
 # QS trend analysis - sidebar
+library(tidyverse)
 library(shiny)
 library(shinydashboard)
 library(shinyFiles)
-library(tidyverse) # TODO: maybe extract the relevant packages
 library(DT)
 library(plotly)
 # library(shinyWidgets)
@@ -13,7 +13,7 @@ source("./global.R")
 # UI ----
 ui <- fluidPage(
   # App title
-  titlePanel(title = "QS trend analysis | V 0.0.2"),
+  titlePanel(title = "QS Trend Analysis (v0.0.3)"),
   
   fluidRow(
     column(3,
@@ -32,13 +32,16 @@ ui <- fluidPage(
 # All functionality in the back-end
 # Server ----
 server <- shinyServer(function(input, output, session) {
-  
   # Check presence database ----
   output$db_present <- reactive({
+    
     if(file.exists(DB_PATH)) {
       # print("DB exists")
-      db <<- read_csv(DB_PATH)
-
+      db <<- read_csv(DB_PATH,
+                     col_types = list(col_datetime(format = ""), col_character(),
+                                      col_character(), col_character(),
+                                      col_character(), col_double()))
+      
       # Render files df
       output$db_files <- renderDataTable(db %>% 
                                            select(date, exp_name) %>% 
