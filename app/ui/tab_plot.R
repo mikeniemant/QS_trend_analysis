@@ -2,9 +2,8 @@
 
 tabPanel("Plot", value = "plot",
         
-         plotlyOutput("plot_trend")
+         uiOutput("plots")
          
          # conditionalPanel(condition = "output.file_uploaded", #  & input.tabs == 'plot'
          #                  plotOutput("plot"))
-         
 )

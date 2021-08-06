@@ -1,9 +1,6 @@
 # QS trend analysis - global 
 Sys.setenv(TZ="UTC")
 
-DB_PATH <- "./../db.csv"
-QC_PATH <- "./../qc.csv"
-
 # Color scheme
 rgb_colours <- c("29 79 110", 
                  "74 174 219",
@@ -87,7 +84,7 @@ readTxt <- function(file_path) {
   # Compile output as list object
   tib <- tibble(date = exp_date,
                 instrument = as.character(exp_instr),
-                id = as.double(exp_instr_id)) %>% 
+                id = as.character(exp_instr_id)) %>% 
     bind_cols(res %>% nest(data = everything()))
   
   return(tib)
@@ -95,8 +92,8 @@ readTxt <- function(file_path) {
 
 processQSResults <- function(res) {
   # Change Undetermined to NA
-  res$CT[res$CT == "Undetermined"] <- NA
-  # TODO: Can we improve this?
+  res <- res %>% 
+    mutate(CT = replace(CT, CT == "Undetermined", NA))
   
   # Filter relevant columns
   res <- res %>% 
@@ -113,17 +110,74 @@ processQSResults <- function(res) {
   return(res)
 }
 
-plotTrend <- function(x) {
-  p <- ggplot(x %>% mutate(instrument = factor(instrument)),
-              aes(x = date, y = ct, colour = target)) +
-    geom_point(aes(shape = instrument), alpha = 0.5) +
-    stat_smooth(method = "lm", formula = "y ~ x") + 
+generatePlot <- function(db, qc, t, period) {
+  x <- db %>% 
+    filter(target == t) %>% 
+    mutate(instrument = factor(instrument),
+           d_days = as.integer(difftime(max(date), date, units = "days")))
+  
+  # Filter data based on selected period
+  x <- x %>% 
+    filter(d_days <= case_when(period == "Week" ~ 7,
+                               period == "Month" ~ 31,
+                               period == "Year" ~ 365,
+                               period == "All" ~ as.double(max(x$d_days))))
+
+  p <- ggplot(x) +
+    geom_point(aes(x = date, 
+                   y = ct, 
+                   colour = target, 
+                   shape = instrument,
+                   text = paste0("Date: ", date, "\n",
+                                 "Experiment name: ", x$exp_name, "\n",
+                                 "Target: ", target, "\n",
+                                 "Ct: ", ct, "\n",
+                                 "Instrument: ", instrument, "\n")), alpha = 0.5) +
     labs(x = "Date",
          y = "Ct",
          colour = "Target name",
-         shape = "Instrument") +
-    scale_color_manual(values = colors) +
-    facet_wrap(~target, ncol = 1, scales = "fixed") + # free_y
+         shape = "Instrument",
+         title = t) +
+    scale_color_manual(values = colors[which(unique(db$target) %in% t)]) + 
     theme_bw() +
     theme(legend.position="none")
+  
+  if(!is.null(qc)) {
+    # Preprocess dates for target 
+    qc_t <- qc %>% 
+      filter(target == t)
+    
+    # Create dynamic QC values
+    # First, edit the minimal date
+    if(min(qc_t$date) < min(x$date)) {
+      # Remove all QC dates before, expect 1, before the min(x$date)
+      if(all(which(qc_t$date < min(x$date)))) {
+        qc_t <- qc_t %>% slice(nrow(.))
+        qc_t$date[1] <- min(x$date)
+      } else {
+        most_recent_qc_date_i <- which(qc_t$date < min(x$date))-1
+        qc_t$date[most_recent_qc_date_i]
+        qc_t <- qc_t %>% slice(most_recent_qc_date_i:nrow(.))
+        # qc_t$date[1] <- x$date[1]
+      }
+    }
+    
+    # Then, edit the maximal date
+    if(max(qc_t$date) > max(x$date)) {
+      qc_t$date[nrow(qc_t)] <- max(x$date)
+    } else {
+      # Add the latest
+      qc_t <- qc_t %>% 
+        bind_rows(tibble(target = t,
+                         date = x %>% filter(target == t) %>% slice(which.max(date)) %>% pull(date),
+                         min = qc %>% filter(target == t) %>% slice(which.max(date)) %>% pull(min),
+                         max = qc %>% filter(target == t) %>% slice(which.max(date)) %>% pull(max)))
+    }
+    
+    p <- p + 
+      geom_step(aes(x = date, y = min), qc_t, colour = "black", linetype = "dashed") +
+      geom_step(aes(x = date, y = max), qc_t, colour = "black", linetype = "dashed")
+  }
+  
+  return(p)
 }

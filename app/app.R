@@ -3,6 +3,7 @@ library(tidyverse)
 library(shiny)
 library(shinydashboard)
 library(shinyFiles)
+library(shinyjs)
 library(DT)
 library(plotly)
 # library(shinyWidgets)
@@ -13,7 +14,7 @@ source("./global.R")
 # UI ----
 ui <- fluidPage(
   # App title
-  titlePanel(title = "QS Trend Analysis (v0.0.3)"),
+  titlePanel(title = "QS Trend Analysis (v0.0.4)"),
   
   fluidRow(
     column(3,
@@ -32,41 +33,26 @@ ui <- fluidPage(
 # All functionality in the back-end
 # Server ----
 server <- shinyServer(function(input, output, session) {
-  # Check presence database ----
-  output$db_present <- reactive({
-    
-    if(file.exists(DB_PATH)) {
+  # Check presence qc file ----
+  output$qc_present <- reactive({
+    if(file.exists("./../qc.csv")) {
       # print("DB exists")
-      db <<- read_csv(DB_PATH,
-                     col_types = list(col_datetime(format = ""), col_character(),
-                                      col_character(), col_character(),
-                                      col_character(), col_double()))
-      
-      # Render files df
-      output$db_files <- renderDataTable(db %>% 
-                                           select(date, exp_name) %>% 
-                                           distinct(), 
-                                         options = list(# dom = 't',
-                                           # paging = TRUE,
-                                           pageLength = 5))
-      
+      qc <<- read_csv("./../qc.csv",
+                      col_types = list(col_character(), col_datetime(format = ""),
+                                       col_double(), col_double()))
       return(T)
     } else {
       # print("DB does not exists")
-      db <<- NULL
+      qc <<- NULL
       return(F)
     }
   })
   
-  outputOptions(output, "db_present", suspendWhenHidden=FALSE)
-
-  # Main
-  source(file.path("server", "server_main.R"),  local = TRUE)$value
+  outputOptions(output, "qc_present", suspendWhenHidden=FALSE)
   
-  # Database
+  # Import server tabs ----
+  source(file.path("server", "server_main.R"),  local = TRUE)$value
   source(file.path("server", "server_db.R"),  local = TRUE)$value
-
-  # Plot
   source(file.path("server", "server_plot.R"),  local = TRUE)$value
 })
 

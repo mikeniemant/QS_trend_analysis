@@ -1,4 +1,4 @@
-# QS trend analysis - UI - sidebar
+# QS trend analysis - ui sidebar
 
 wellPanel(
   conditionalPanel(condition = "input.tabs == 'db'", 
@@ -23,8 +23,7 @@ wellPanel(
   #                  sliderInput("slider_months", "Months", value = c(2, 12), min = 1, max = 12))
   conditionalPanel(condition = "input.tabs == 'plot'",
                    radioButtons(inputId = "radio_period", 
-                                choices = c("Week", "Month", "Year"), 
+                                choices = c("Week", "Month", "Year", "All"), 
                                 label = "Select period", 
                                 selected = "Month"))
-  
 )

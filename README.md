@@ -1,5 +1,4 @@
 # QS trend analysis
-
 ## Description
 R Shiny app for QS trending analysis of the positive control. (QS system output)
 

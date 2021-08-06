@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2021-08-06
+### Added
+- Functions to generate multiple plots
+- Quality control (qc) min and max can now be imported
+- QC are visualized in the trending plots
+- Added the 'All' time period option to the radio button
+
+## Changed
+- Text introduction
+
 ## [0.0.3] - 2021-08-06
 ### Added
 - README documentation

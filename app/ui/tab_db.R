@@ -1,7 +1,7 @@
 # QS trend analysis - tab db
 
 tabPanel("Database", value = "db",
-         
+         useShinyjs(), # TODO: can we remove this?
          conditionalPanel(condition = "!output.db_present",
                           h3("Please import files to initiate database")),
          
