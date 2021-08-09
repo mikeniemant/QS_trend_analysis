@@ -11,14 +11,17 @@ Install the latest R version, the necessary libraries and fork repo from GitHub.
 
 2. Start R console and install the necessary R libraries by running the following commands
 
-`install.packages("tidyverse")`
-`install.packages("shiny")`
-`install.packages("shinydashboard")`
-`install.packages("shinyFiles")`
-`install.packages("DT")`
-`install.packages("plotly")`
+```
+install.packages("tidyverse")
+install.packages("shiny")
+install.packages("shinydashboard")
+install.packages("shinyFiles")
+install.packages("shinyjs")
+install.packages("DT")
+install.packages("plotly")
+```
 
-3. Fork repository from GitHub, either by using the Git console commands or by downloading the complete repo (zip) by clicking on the green 'Code' in the top right. Open the zip file and extract all files. Make sure you have the following folder structure in your system: "C:/QS_trend_analysis/app/app.R", and not "C:/QS_trend_analysis/QS_trend_analaysis-master/app/app.R", in order to make the app work.
+3. Fork repository from GitHub, either by using the Git console commands or by downloading the complete repo (zip) by clicking on the green 'Code' in the top right. Open the zip file and extract all files. Make sure you have the following folder structure in your system: "C:/QS_trend_analysis/app/app.R", and not "C:/QS_trend_analysis/QS_trend_analysis-master/app/app.R", in order to make the app work.
 
 ## Usage
 Usage of the app depends on the operator system.

@@ -23,7 +23,7 @@ wellPanel(
   #                  sliderInput("slider_months", "Months", value = c(2, 12), min = 1, max = 12))
   conditionalPanel(condition = "input.tabs == 'plot'",
                    radioButtons(inputId = "radio_period", 
-                                choices = c("Week", "Month", "Year", "All"), 
+                                choices = c("Last week", "Last month", "Last year", "All"), 
                                 label = "Select period", 
-                                selected = "Month"))
+                                selected = "Last month"))
 )

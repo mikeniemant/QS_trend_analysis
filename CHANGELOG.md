@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2021-08-09
+### Added
+- simulateQSFile function to simulate QS data
+- trend line
+- validate import functions. User will not be able to import data if at least one file does not meet the requirements
+
+## Changed
+- Text readme and app
+- Code to control the db page
+- Now, the add_to_db button is only shown when all files pass the requirements
+
 ## [0.0.4] - 2021-08-06
 ### Added
 - Functions to generate multiple plots

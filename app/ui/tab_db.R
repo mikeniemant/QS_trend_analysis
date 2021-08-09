@@ -1,9 +1,8 @@
 # QS trend analysis - tab db
 
 tabPanel("Database", value = "db",
-         useShinyjs(), # TODO: can we remove this?
          conditionalPanel(condition = "!output.db_present",
-                          h3("Please import files to initiate database")),
+                          h3("Please import files to create database")),
          
          conditionalPanel(condition = "output.db_present",
                           h3("Available experiments in database")),
@@ -14,8 +13,9 @@ tabPanel("Database", value = "db",
          conditionalPanel(condition = "output.files_imported",
                           h3("Imported files")),
          
-         dataTableOutput("input_files_table"),
-         
          conditionalPanel(condition = "output.files_imported",
-                          actionButton("add_to_db", "Add data to database"))
+                          dataTableOutput("input_files_table")),
+         
+         conditionalPanel(condition = "output.files_imported & output.no_errors",
+                          actionButton("add_to_db", ""))
 )

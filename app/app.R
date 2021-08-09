@@ -6,7 +6,6 @@ library(shinyFiles)
 library(shinyjs)
 library(DT)
 library(plotly)
-# library(shinyWidgets)
 
 # Import global variables and functions
 source("./global.R")
@@ -14,7 +13,7 @@ source("./global.R")
 # UI ----
 ui <- fluidPage(
   # App title
-  titlePanel(title = "QS Trend Analysis (v0.0.4)"),
+  titlePanel(title = "QS Trend Analysis (v0.0.5)"),
   
   fluidRow(
     column(3,
