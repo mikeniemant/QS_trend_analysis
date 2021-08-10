@@ -40,30 +40,27 @@ observe({
   req(!rv$clear)
   
   file_paths <- input$input_files
+  
   file_paths <- validateFiles(file_paths)
   
-  n_files_for_import <- ifelse(all(file_paths$error == ""), nrow(file_paths), 0)
-  
   # Check if db is available in order to draw table
-  if(is.null(rv$db_data)) {
-    file_paths <- file_paths %>% mutate(in_database = "No")
-  } else {
+  if(!is.null(rv$db_data)) {
     # Check if not available
     file_paths <- file_paths %>% 
-      mutate(in_database = if_else(exp_name %in% rv$db_data$exp_name, "Yes", "No"))
+      mutate(error = replace(error, exp_name %in% rv$db_data$exp_name, "Already in database"))
   }
-  # TODO: move the "in_database" info to "error", and rename 'error' to message
   
   rv$import_dat <- file_paths %>% 
-    select(-error)
+    unnest(data) %>% 
+    select(date, exp_name, id, instrument, target, ct)
   
   rv$val_import <- file_paths %>% 
-    select(date, exp_name, in_database, error) %>%
+    select(date, exp_name, error) %>%
     mutate(date = as.character(date))
   
   # Update button
   updateActionButton(session, "add_to_db",
-                     label = paste("Import ", n_files_for_import, " files"))
+                     label = paste("Import ", sum(file_paths$error  == ""), " files"))
 }
 )
 
@@ -84,7 +81,7 @@ output$input_files_table <- renderDataTable(rv$val_import,
 
 # Check whether there are no errors ----
 output$no_errors <- reactive({
-  return(all(rv$val_import$error == "") & all(rv$val_import$in_database == "No"))
+  return(all(rv$val_import$error == "" | rv$val_import$error == "Already in database"))
 })
 
 outputOptions(output, "no_errors", suspendWhenHidden=FALSE)
@@ -93,26 +90,14 @@ outputOptions(output, "no_errors", suspendWhenHidden=FALSE)
 observeEvent(input$add_to_db, {
   # Check for presence database
   if(!is.null(rv$db_data)) {
-    # Prepare x by binding the current db to the added samples
-    if(sum(rv$import_dat$in_database == "No") > 0) {
-      db <- rv$db_data %>%
-        bind_rows(rv$import_dat %>%
-                    filter(in_database == "No") %>%
-                    unnest(data) %>%
-                    select(date, exp_name, instrument, id, target, ct)) %>%
-                    arrange(date)
-    } else {
-      db <- rv$db_data
-    }
+    db <- rv$db_data %>%
+      bind_rows(rv$import_dat)
   } else {
-    db <- rv$import_dat %>%
-      filter(in_database == "No") %>%
-      unnest(data) %>%
-      select(date, exp_name, instrument, id, target, ct) %>%
-      arrange(date)
+    db <- rv$import_dat
   }
-
-  rv$db_data <- db
+  
+  rv$db_data <- db %>% 
+    arrange(date)
 
   # Prepare and save x
   write_csv(x = db, file = "./../db.csv")

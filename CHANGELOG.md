@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.7] - 2021-08-10
+### Added
+- Date calendar to filter studies
+
+### Changed
+- Combined the 'in_database' and 'error' columns of the imported files table
+- Bug fixes of the import files / add to database / plot database functionality
+- Possible to only add files that are not in the database, even though other files that are in the database are also part of the imported files
+
 ## [0.0.6] - 2021-08-10
 ### Added
 - Documentation for the use of qc.csv

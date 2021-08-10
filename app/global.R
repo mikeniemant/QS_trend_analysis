@@ -105,11 +105,10 @@ readMeta <- function(file_path) {
     
     if(length(line) == 0) break
     
-    # Extract variables
+    # Extract meta data
     # - Experiment Run End Time
     # - Instrument Type
     # - Instrument Serial Number
-    
     if(substr(line, 1, 28) == "* Experiment Run End Time = ") {
       exp_date <- substr(line, 29, nchar(line))
       #print(exp_date)
@@ -140,14 +139,12 @@ readMeta <- function(file_path) {
       exp_date <- as.POSIXct(substr(exp_date, 1, 16), format = "%Y-%m-%d %H:%M")
     }
   }
-  # print(exp_date)
   
-  # Compile output as list object
-  tib <- tibble(date = exp_date,
+  output <- tibble(date = exp_date,
                 instrument = as.character(exp_instr),
                 id = as.character(exp_instr_id))
   
-  return(tib)
+  return(output)
 }
 
 processQSResults <- function(file_path) {
@@ -197,19 +194,12 @@ processQSResults <- function(file_path) {
   return(res)
 }
 
-generatePlot <- function(db, qc = NULL, t, period) {
+generatePlot <- function(db, qc = NULL, t) {
   x <- db %>% 
     filter(target == t) %>% 
     mutate(instrument = factor(instrument),
            d_days = as.integer(difftime(max(date), date, units = "days")))
   
-  # Filter data based on selected period
-  x <- x %>% 
-    filter(d_days <= case_when(period == "Last week" ~ 7,
-                               period == "Last month" ~ 31,
-                               period == "Last year" ~ 365,
-                               period == "All" ~ as.double(max(x$d_days))))
-
   p <- ggplot(x) +
     geom_smooth(aes(x = date, y = ct), 
                 data = x, 
@@ -250,7 +240,7 @@ generatePlot <- function(db, qc = NULL, t, period) {
       }
     }
     
-    # Then, edit the maximal date
+    # Now, edit the maximal date
     if(max(qc_t$date) > max(x$date)) {
       qc_t$date[nrow(qc_t)] <- max(x$date)
     } else {

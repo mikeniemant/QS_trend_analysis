@@ -1,6 +1,6 @@
 # QS trend analysis
 ## Description
-R Shiny app for QS trending analysis of the positive control. (QS system output)
+R Shiny app for QS trending analysis of the positive control.
 
 Interactive Shiny interface to plot Ct values measured by the QS machine over time for trending analysis. User can import one or multiple files (txt format) that are added to the locally built database to analyze the trending of positive control Ct values over time. 
 
@@ -24,7 +24,7 @@ install.packages("plotly")
 3. Fork repository from GitHub, either by using the Git console commands or by downloading the complete repo (zip) by clicking on the green 'Code' in the top right. Open the zip file and extract all files. Make sure you have the following folder structure in your system: "C:/QS_trend_analysis/app/app.R", and not "C:/QS_trend_analysis/QS_trend_analysis-master/app/app.R", in order to make the app work.
 
 ## Usage
-Usage of the app depends on the operator system.
+Usage of the app depends on the operator system (MacOS or Windows):
 
 ### MacOS
 
@@ -52,27 +52,31 @@ Now we have to paste these two directories together:
 Open a text editor program and paste the above line in a new file. Save the file as 'QS_trend_analysis.bat' file.
 
 ## Update app
-When a new version is available of the app we can a similar setup as the `bat` file. More on the 'QS_trend_analyis_update.bat' file later..
+When a new version of the app is available we can use a similar setup as the start-up `bat` file. 
 
-## To do:
-A lot ..
+## To do
+- Improve the validation checks
+- Add lot number to trend plot
+- Describe update bat file ('QS_trend_analyis_update.bat')
 
 ## Known bugs
-- Looking at trending from data that originates from outside the US or EU may not be valid as the code does not take these time-zones into account. Therefore, all data generated on a timezone other than PSA, PTA, CEST or CST will likely not be processed correctly! 
+- Looking at trending from data that originates from outside the US or EU may not be valid as the code does not take these time-zones into account. Therefore, all data generated on a timezone other than PSA, PTA, CEST or CST will likely not be processed correctly.
 
 ### Windows
 When using R for the first time, the LC_CTYPE global parameter may either not be defined or set to another language. To resolve this problem, change this global parameter to "English_United States.1250". In R, this can be done with the following commands:
 
-`user_renviron = path.expand(file.path("~", ".Renviron"))`
+`user_renviron = path.expand(file.path("~", ".Renviron"))`\
 `file.edit(user_renviron)`
 
 Paste the following lines in the script that just opened:
   
-`LC_COLLATE  = "English_United States.1250"`
-`LC_CTYPE    = "English_United States.1250"`
-`LC_MONETARY = "English_United States.1250"`
-`LC_NUMERIC  = "English_United States.1250"`
-`LC_TIME     = "English_United States.1250"`
+```
+LC_COLLATE  = "English_United States.1250"
+LC_CTYPE    = "English_United States.1250"
+LC_MONETARY = "English_United States.1250"
+LC_NUMERIC  = "English_United States.1250"
+LC_TIME     = "English_United States.1250"
+```
 
 Save file and restart R / RStudio.
 

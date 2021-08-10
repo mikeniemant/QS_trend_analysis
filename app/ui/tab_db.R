@@ -20,5 +20,5 @@ tabPanel("Database", value = "db",
                           actionButton("add_to_db", "")),
          
          conditionalPanel(condition = "output.files_imported & !output.no_errors",
-                          h4("Errors found in input; at least one file is either already in the database or has an error."))
+                          h4("Errors found in input; at least one file is already in the database or has an error."))
 )

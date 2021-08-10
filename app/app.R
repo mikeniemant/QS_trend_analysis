@@ -13,7 +13,7 @@ source("./global.R")
 # UI ----
 ui <- fluidPage(
   # App title
-  titlePanel(title = "QS Trend Analysis (v0.0.6)"),
+  titlePanel(title = "QS Trend Analysis (v0.0.7)"),
   
   fluidRow(
     column(3,
