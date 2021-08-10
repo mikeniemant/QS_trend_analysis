@@ -1,4 +1,7 @@
 # QS trend analysis
+
+[![Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mikeniemant/QS_trend_analysis/HEAD)
+
 ## Description
 R Shiny app for QS trending analysis of the positive control.
 

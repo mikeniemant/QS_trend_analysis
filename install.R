@@ -1,0 +1,7 @@
+install.packages("tidyverse")
+install.packages("shiny")
+install.packages("shinydashboard")
+install.packages("shinyFiles")
+install.packages("shinyjs")
+install.packages("DT")
+install.packages("plotly")
