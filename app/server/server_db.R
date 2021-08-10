@@ -6,7 +6,7 @@ rv <- reactiveValues(
   db_data = NULL,
   val_import = NULL,
   import_dat = NULL,
-  clear = FALSE
+  clear = TRUE # FALSE
 )
 
 # Check presence and import database ----
@@ -60,7 +60,7 @@ observe({
   rv$val_import <- file_paths %>% 
     select(date, exp_name, in_database, error) %>%
     mutate(date = as.character(date))
-
+  
   # Update button
   updateActionButton(session, "add_to_db",
                      label = paste("Import ", n_files_for_import, " files"))

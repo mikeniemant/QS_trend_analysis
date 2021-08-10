@@ -30,10 +30,19 @@ validateFiles <- function(file_paths) {
       con = file(x, "r")
       n_lines <- readLines(con)
       close(con)
-      return(if_else(length(n_lines)< 1, "Empty file", ""))
+      return(if_else(length(n_lines) < 1, "Empty file", ""))
     }))
   
-  # Extract meta data and check if any of meta data is NA
+  # VS2: Check if file has the meta data
+  file_paths <- file_paths %>% 
+    mutate(map_df(datapath, readMeta)) %>% 
+    mutate(error = if_else(sum(is.na(c(date, instrument, id))) == 3, "No meta", "")) %>% 
+    select(-c(date, instrument, id))
+  
+  # Extract meta data depending on available files
+  # - from multiple files with at least one error and one without error
+  # - from multiple files with no error and one without error
+  # - from one file with no errors
   if(sum(file_paths$error != "") > 0 & sum(file_paths$error == "") > 0) {
     file_paths <- bind_rows(file_paths %>% 
                               filter(error != "") %>% 
@@ -77,9 +86,7 @@ validateFiles <- function(file_paths) {
       filter(error == "") %>% 
       mutate(data = map(datapath, processQSResults))
   }
-  
-  
-  # Extract ct data
+
   return(file_paths)
 }
 
@@ -95,6 +102,8 @@ readMeta <- function(file_path) {
   
   while(TRUE) {
     line = readLines(con, n = 1)
+    
+    if(length(line) == 0) break
     
     # Extract variables
     # - Experiment Run End Time
@@ -164,11 +173,10 @@ processQSResults <- function(file_path) {
   }
   close(con)
   
-  res <- read_tsv(file = file_path, 
-                  skip = i+1, 
-                  n_max = j-1, 
-                  col_names = c("Well", "Sample Name", "Target Name", "CT"),
-                  col_types = c(col_character(), col_character(), col_character(), col_character()))
+  res <- suppressMessages(read_tsv(file = file_path, 
+                  skip = i, 
+                  n_max = j-1) %>% 
+    select(Well, `Sample Name`, `Target Name`, CT))
   
   # Change Undetermined to NA
   res <- res %>% 
@@ -229,20 +237,16 @@ generatePlot <- function(db, qc = NULL, t, period) {
   if(!is.null(qc)) {
     # Preprocess dates for target 
     qc_t <- qc %>% 
-      filter(target == t)
+      filter(target == t) %>% 
+      arrange(date)
     
     # Create dynamic QC values
     # First, edit the minimal date
     if(min(qc_t$date) < min(x$date)) {
       # Remove all QC dates before, expect 1, before the min(x$date)
-      if(all(which(qc_t$date < min(x$date)))) {
+      if(all(qc_t$date < min(x$date))) {
         qc_t <- qc_t %>% slice(nrow(.))
         qc_t$date[1] <- min(x$date)
-      } else {
-        most_recent_qc_date_i <- which(qc_t$date < min(x$date))-1
-        qc_t$date[most_recent_qc_date_i]
-        qc_t <- qc_t %>% slice(most_recent_qc_date_i:nrow(.))
-        # qc_t$date[1] <- x$date[1]
       }
     }
     
@@ -264,161 +268,4 @@ generatePlot <- function(db, qc = NULL, t, period) {
   }
   
   return(p)
-}
-
-simulateQSFile <- function(n = 10, 
-                           start_date = "2001-01-01 12:00:00",
-                           end_date = "2001-01-10 12:00:00",
-                           sim_date = F,
-                           target_dic = tibble(target = c("ACTB", "RPLP0", "MLANA", "ITGB3", "PLAT", "IL8", "GDF15", "LOXL4", "TFGBR1", "SERPINE2"),
-                                               mean = c(20, 21, 25, 28, 27, 25, 25, 31, 25, 22)),
-                           sd = 0.1,
-                           dir) {
-  # Simulate QS files with speficic dates and CT output for a prespecified 
-  # number of targets with corresponding
-  # n: number of required samples
-  # start_date: start date
-  # end_date: end data to simulate experiment dates
-  # target_dic: targets with corresponding mean ct values
-  # dir: output directory
-  #
-  # Example1: simulateQSFile(n = 15, dir = "./../testing/test/")
-  # Example2: simulateQSFile(n = 15, start_date = "2010-01-01 12:00:00", end_date = "2020-01-01 00:00:00", dir = "./../testing/test/")
-  
-  # Generate expirement names and dates
-  exp_names <- paste0("exp_", 1:n)
-  
-  start_date = as.POSIXct(start_date)
-  end_date = as.POSIXct(end_date)
-  
-  if(as.integer(difftime(end_date, start_date, units = "days")) < n) {
-    cat("Start date: ", start_date, 
-          "\nEnd date: ", end_date,
-          "\nn: ", n,
-          "\n\nAs we do not want to have duplicate date runs and the function simulates dates wiht a difference of one day. Make sure that the 'n' input variable is greater than the difference between 'end_date' and 'start_date in days.")
-    return()
-  }
-  
-  if(sim_date) {
-    exp_dates <- seq(from = start_date, to = end_date, by = "D")
-  } else {
-    exp_dates <- sample(seq(start_date, end_date, by="day"), n, replace = F)
-  }
-  
-  exp_dates <- paste0(format(exp_dates, "%d-%m-%Y %H:%M:%S"), " CEST")  
-  
-  # Generate data
-  for(i in 1:n) {
-    file <- paste0(dir, exp_names[i], ".txt")
-    if(file.exists(file)) file.remove(file)
-    sink(file, append = T)
-    
-    # Table 1
-    t1 <- paste("* Block Type = 96-Well 0.2-mL Block", 
-                "* Calibration Background is expired  = No",
-                "* Calibration Background performed on = 01-01-2001",
-                "* Calibration Pure Dye ABY is expired = No",
-                "* Calibration Pure Dye ABY performed on = 01-01-2001",
-                "* Calibration Pure Dye CY5 is expired = No",
-                "* Calibration Pure Dye CY5 performed on = 01-01-2001",
-                "* Calibration Pure Dye FAM is expired = No",
-                "* Calibration Pure Dye FAM performed on = 01-01-2001",
-                "* Calibration Pure Dye JUN is expired = No",
-                "* Calibration Pure Dye JUN performed on = 01-01-2001",
-                "* Calibration Pure Dye MUSTANG PURPLE is expired = No",
-                "* Calibration Pure Dye MUSTANG PURPLE performed on = 01-01-2001",
-                "* Calibration Pure Dye NED is expired = No",
-                "* Calibration Pure Dye NED performed on = 01-01-2001",
-                "* Calibration Pure Dye ROX is expired = No",
-                "* Calibration Pure Dye ROX performed on = 01-01-2001",
-                "* Calibration Pure Dye SYBR is expired = No",
-                "* Calibration Pure Dye SYBR performed on = 01-01-2001",
-                "* Calibration Pure Dye TAMRA is expired = No",
-                "* Calibration Pure Dye TAMRA performed on = 01-01-2001",
-                "* Calibration Pure Dye VIC is expired = No",
-                "* Calibration Pure Dye VIC performed on = 01-01-2001",
-                "* Calibration ROI is expired  = No",
-                "* Calibration ROI performed on = 01-01-2001",
-                "* Calibration Uniformity is expired  = No",
-                "* Calibration Uniformity performed on = 01-01-2001",
-                "* Chemistry = SYBR_GREEN",
-                "* Date Created = 01-01-2001 00:00:00 CEST",
-                "* Experiment Barcode = NA",
-                "* Experiment Comment = NA",
-                "* Experiment File Name = UNKNOWN",
-                paste0("* Experiment Name = ", exp_names[i]),  # 20180725_PROT-127_Plate1_BridgingSampleQC
-                paste0("* Experiment Run End Time = ", exp_dates[i]), # 23-08-2018 15:37:27 CEST
-                "* Experiment Type = Standard Curve",
-                "* Instrument Name =       QS-001",
-                "* Instrument Serial Number = 001",
-                "* Instrument Type = QuantStudio™ 5 Dx System",
-                "* Passive Reference = ROX",
-                "* Post-read Stage/Step = ",
-                "* Pre-read Stage/Step = ",
-                "* Quantification Cycle Method = Ct",
-                "* Signal Smoothing On = true",
-                "* Stage where Melt Analysis is performed = Stage3",
-                "* Stage/ Cycle where Ct Analysis is performed = Stage2, Step2",
-                "* User Name = NA",
-                "",
-                sep = "\n")
-    writeLines(t1)
-    
-    # Table 2
-    writeLines("[Results]")
-    
-    # Count number of required samples
-    n_sim <- floor((96 - (nrow(target_dic))) / nrow(target_dic))
-    
-    # Simulate data 
-    t2 <- target_dic %>% 
-      mutate(ct = map(mean, function(x) rnorm(n = n_sim, mean = x, sd = sd))) %>% 
-      unnest(ct) %>% 
-      mutate(ct = as.character(round(ct, 3))) %>% 
-      select(-mean)
-    
-    # Add sample names
-    t2 <- t2 %>% 
-      mutate(sample_name = rep(paste0(exp_names[i], "_", 1:n_sim), times = nrow(target_dic)))
-    
-    # Create Positive Control
-    t2 <- t2 %>% 
-      mutate(sample_name = replace(sample_name, 
-                                   sample_name == paste0(exp_names[i], "_", n_sim), 
-                                   "Positive Control"))
-    
-    # Add Negative Control
-    t2 <- t2 %>% bind_rows(tibble(target = target_dic$target,
-                                  ct = "Undetermined",
-                                  sample_name = "Negative Control"))
-    
-    # Add well and finalize output
-    t2 <- t2 %>% 
-      arrange(match(sample_name, c("Positive Control", "Negative Control", paste0(exp_names[i], "_", 1:(n_sim-1))))) %>% 
-      mutate(Well = row_number()) %>% 
-      transmute(Well = row_number(),
-                `Sample Name` = sample_name,
-                `Target Name` = target,
-                CT = ct)
-    
-    writeLines(paste(colnames(t2), collapse = "\t"))
-    
-    for(j in 1:nrow(t2)) {
-      writeLines(paste(unname(as.matrix(t2)[j, ]), collapse = "\t"))
-    }
-    
-    # t3
-    writeLines("\n[Melt Curve Results]")
-    t3 <- t2 %>% 
-      select(-CT) %>% 
-      mutate(Tm = 0)
-    
-    writeLines(paste(colnames(t3), collapse = "\t"))
-    
-    for(j in 1:nrow(t3)) {
-      writeLines(paste(unname(as.matrix(t3)[j, ]), collapse = "\t"))
-    }
-    sink()
-    closeAllConnections()
-  }
 }

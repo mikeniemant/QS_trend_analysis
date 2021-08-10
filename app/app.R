@@ -13,7 +13,7 @@ source("./global.R")
 # UI ----
 ui <- fluidPage(
   # App title
-  titlePanel(title = "QS Trend Analysis (v0.0.5)"),
+  titlePanel(title = "QS Trend Analysis (v0.0.6)"),
   
   fluidRow(
     column(3,
@@ -35,13 +35,11 @@ server <- shinyServer(function(input, output, session) {
   # Check presence qc file ----
   output$qc_present <- reactive({
     if(file.exists("./../qc.csv")) {
-      # print("DB exists")
       qc <<- read_csv("./../qc.csv",
                       col_types = list(col_character(), col_datetime(format = ""),
                                        col_double(), col_double()))
       return(T)
     } else {
-      # print("DB does not exists")
       qc <<- NULL
       return(F)
     }

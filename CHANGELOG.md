@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.6] - 2021-08-10
+### Added
+- Documentation for the use of qc.csv
+- Extra code to validate imported files
+
+## Changed
+- Text main tab
+- Functionality to clear the fileInput object
+
 ## [0.0.5] - 2021-08-09
 ### Added
 - simulateQSFile function to simulate QS data

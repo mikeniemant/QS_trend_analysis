@@ -1,22 +1,13 @@
 # QS trend analysis - ui sidebar
 
 wellPanel(
+  useShinyjs(), # do not remove this, required to reset the fileInput object
   conditionalPanel(condition = "input.tabs == 'db'", 
                    fileInput(inputId = "input_files", 
                              label = "",
                              multiple = T,
                              accept = c(".txt"), 
                              placeholder = "Add new txt files")),
-  
-  # Works together with the observe button in app to reset fileInput widget
-  tags$script('
-    Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {      
-        var id = "#" + x + "_progress";
-        var idBar = id + " .bar";
-        $(id).css("visibility", "hidden");
-        $(idBar).css("width", "0%");
-    });
-  '), # TODO: still have to add: "Add new text files"
   
   # conditionalPanel(condition = "input.tabs == 'plot'",
   #                  sliderInput(inputId = "slider_years", label = "Years", value = c(2019, 2020), min = 2018, max = 2021),
